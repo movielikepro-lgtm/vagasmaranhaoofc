@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -40,6 +41,7 @@
       color: #555;
       font-size: 16px;
       margin-bottom: 20px;
+      text-align: left;
     }
 
     button {
@@ -112,7 +114,7 @@
   <div class="chatbox" id="mainBox">
     <h2>🤖 Olá! Eu sou a Assistente Virtual do Perfil Vagas Maranhão.</h2>
     <p>Como eu posso te ajudar hoje?</p>
-    <button onclick="showFormVaga()">📢 Quero anunciar uma vaga de emprego</button>
+    <button onclick="showInfo()">📢 Quero anunciar uma vaga de emprego</button>
     <button onclick="showFormCurriculo()">📄 Quero fazer um currículo</button>
 
     <div class="social">
@@ -123,12 +125,34 @@
   </div>
 
   <script>
-    // 🔹 Token e Chat ID do Telegram
     const token = "8185433661:AAEd6N4lz5J2pgIQqkGTXkPGdqt4nx6qkEQ";  
     const chat_id = "5253560325";  
 
     // ===========================
-    // 📢 FORMULÁRIO DE VAGA
+    // 💰 Tela de informações antes do formulário
+    // ===========================
+    function showInfo() {
+      const mainBox = document.getElementById('mainBox');
+      mainBox.innerHTML = `
+        <h2>📢 Informações de Divulgação</h2>
+        <p>
+        Vou deixar abaixo mais informações de como trabalhamos, beleza? Qualquer dúvida ou questionamento, estou à sua disposição.<br><br>
+        Divulgamos vagas no nosso perfil do Instagram, no grupo do WhatsApp e no Telegram.<br><br>
+        A divulgação de vagas de emprego está com desconto e sai por R$ 17,00 no Pix e R$ 17,75 no cartão.<br>
+        Para divulgação de cursos ou outros tipos de anúncios, o valor é de R$ 50,00 no Pix ou no cartão sai a R$ 50,20.<br><br>
+        A divulgação é feita imediatamente após a confirmação do pagamento, podendo ser ajustada conforme o desejo do anunciante. A duração da postagem são as seguintes: Feed: Indefinido, Story: 24h, Grupos: 90 Dias.<br><br>
+        Formas de pagamento:<br>
+        No cartão de crédito 💳<br>
+        Vagas: 17,75<br>
+        Outros: R$ 50,20
+        </p>
+        <button onclick="showFormVaga()">Seguir ➡️</button>
+        <button onclick="reloadPage()" style="background:#888;">⬅️ Voltar</button>
+      `;
+    }
+
+    // ===========================
+    // 📢 Formulário de Vaga
     // ===========================
     function showFormVaga() {
       const mainBox = document.getElementById('mainBox');
@@ -143,13 +167,16 @@
           <input type="email" id="email" placeholder="E-mail da empresa" required>
           <input type="text" id="local" placeholder="Local da vaga (Cidade/Bairro)" required>
           <textarea id="descricao" rows="4" placeholder="Descrição da vaga"></textarea>
-          <button onclick="sendVaga()">Enviar</button>
+          <button onclick="showPix()">Enviar ➡️</button>
         </div>
         <button onclick="reloadPage()" style="background:#888;">⬅️ Voltar</button>
       `;
     }
 
-    function sendVaga() {
+    // ===========================
+    // 💸 Tela Pix após formulário
+    // ===========================
+    function showPix() {
       const nomeVaga = document.getElementById('nomeVaga').value;
       const nomeEmpresa = document.getElementById('nomeEmpresa').value;
       const cnpj = document.getElementById('cnpj').value;
@@ -163,7 +190,29 @@
         return;
       }
 
-      const mensagem = `📢 Nova Vaga Anunciada\n\n🏷 Vaga: ${nomeVaga}\n🏢 Empresa: ${nomeEmpresa}\n🧾 CNPJ: ${cnpj}\n📱 Telefone: ${telefone}\n📧 Email: ${email}\n📍 Local: ${local}\n📝 Descrição: ${descricao}`;
+      const mainBox = document.getElementById('mainBox');
+      mainBox.innerHTML = `
+        <h2>💰 Pagamento Pix</h2>
+        <p>
+        Para divulgar sua vaga, faça o pagamento via Pix:<br>
+        Valor: R$ 17,00<br>
+        Chave Pix: 123.456.789-00<br>
+        Após realizar o pagamento, envie o comprovante pelo WhatsApp.
+        </p>
+        <button onclick="enviarVaga()">✅ Já paguei, enviar vaga</button>
+        <button onclick="reloadPage()" style="background:#888;">⬅️ Voltar</button>
+      `;
+      
+      // Guardar dados temporariamente
+      window.vagaDados = {nomeVaga, nomeEmpresa, cnpj, telefone, email, local, descricao};
+    }
+
+    // ===========================
+    // 📤 Enviar vaga para Telegram + abrir WhatsApp
+    // ===========================
+    function enviarVaga() {
+      const dados = window.vagaDados;
+      const mensagem = `📢 Nova Vaga Anunciada\n\n🏷 Vaga: ${dados.nomeVaga}\n🏢 Empresa: ${dados.nomeEmpresa}\n🧾 CNPJ: ${dados.cnpj}\n📱 Telefone: ${dados.telefone}\n📧 Email: ${dados.email}\n📍 Local: ${dados.local}\n📝 Descrição: ${dados.descricao}`;
 
       fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: "POST",
@@ -171,7 +220,7 @@
         body: JSON.stringify({ chat_id: chat_id, text: mensagem })
       }).then(() => {
         let numero = "559892119065"; 
-        let msg = `Olá! Gostaria de divulgar a vaga: ${nomeVaga} - ${nomeEmpresa}`;
+        let msg = `Olá! Já realizei o pagamento da divulgação e gostaria de enviar a seguinte vaga:\n${dados.nomeVaga} - ${dados.nomeEmpresa}`;
         window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, "_blank");
       }).catch(err => {
         alert("Erro ao enviar para o Telegram.");
@@ -180,7 +229,7 @@
     }
 
     // ===========================
-    // 📄 FORMULÁRIO DE CURRÍCULO
+    // Currículo
     // ===========================
     function showFormCurriculo() {
       const mainBox = document.getElementById('mainBox');
@@ -222,7 +271,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat_id: chat_id, text: mensagem })
       }).then(() => {
-        let numero = "559887821271"; // número do WhatsApp para currículo
+        let numero = "559887821271"; 
         let msg = `Olá! Quero fazer meu currículo. Meus dados são:\n\n${mensagem}`;
         window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, "_blank");
       }).catch(err => {
